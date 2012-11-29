@@ -44,7 +44,6 @@ static BOOL waitingForAccess = NO;
 @property (nonatomic, strong) NSArray *attachmentFrameViews;
 @property (nonatomic, strong) NSArray *attachmentImageViews;
 @property (nonatomic) UIStatusBarStyle previousStatusBarStyle;
-@property (nonatomic, weak) UIViewController *fromViewController;
 @property (nonatomic, strong) UIImageView *backgroundImageView;
 @property (nonatomic, strong) DEFacebookGradientView *gradientView;
 @property (nonatomic, strong) UIPickerView *accountPickerView;
@@ -89,7 +88,6 @@ static BOOL waitingForAccess = NO;
 @synthesize attachmentFrameViews = _attachmentFrameViews;
 @synthesize attachmentImageViews = _attachmentImageViews;
 @synthesize previousStatusBarStyle = _previousStatusBarStyle;
-@synthesize fromViewController = _fromViewController;
 @synthesize backgroundImageView = _backgroundImageView;
 @synthesize gradientView = _gradientView;
 @synthesize accountPickerView = _accountPickerView;
@@ -143,11 +141,6 @@ enum {
     _urls = [[NSMutableArray alloc] init];
 }
 
-- (BOOL)de_isIOS5
-{
-    return (NSClassFromString(@"NSJSONSerialization") != nil);
-}
-
 #pragma mark - Superclass Overrides
 
 - (void)viewDidLoad
@@ -158,11 +151,6 @@ enum {
     self.textView.backgroundColor = [UIColor clearColor];
     
 	self.textView.keyboardType = UIKeyboardTypeTwitter;
-    if ([self de_isIOS5]) {
-        self.fromViewController = self.presentingViewController;
-    } else {
-        self.fromViewController = self.parentViewController;
-    }
     
 	// Put the attachment frames and image views into arrays so they're easier to work with.
 	// Order is important, so we can't use IB object arrays. Or at least this is easier.
@@ -202,10 +190,10 @@ enum {
 	// Now let's fade in a gradient view over the presenting view.
     self.gradientView = [[DEFacebookGradientView alloc] initWithFrame:[UIApplication sharedApplication].keyWindow.bounds];
     self.gradientView.autoresizingMask = UIViewAutoresizingNone;
-    self.gradientView.transform = self.fromViewController.view.transform;
+    self.gradientView.transform = self.presentingViewController.view.transform;
     self.gradientView.alpha = 0.0f;
     self.gradientView.center = [UIApplication sharedApplication].keyWindow.center;
-    [self.fromViewController.view addSubview:self.gradientView];
+    [self.presentingViewController.view addSubview:self.gradientView];
     [UIView animateWithDuration:0.3f
                      animations:^ {
                          self.gradientView.alpha = 1.0f;
@@ -241,8 +229,7 @@ enum {
 {
     [super viewWillDisappear:animated];
     
-    UIView *presentingView = [self de_isIOS5] ? self.fromViewController.view : self.parentViewController.view;
-    [presentingView addSubview:self.gradientView];
+    [self.presentingViewController.view addSubview:self.gradientView];
     
     [self.backgroundImageView removeFromSuperview];
     self.backgroundImageView = nil;
@@ -541,8 +528,7 @@ enum {
 {
     if (![FBSession.activeSession isOpen]) {
         
-        [FBSession openActiveSessionWithPublishPermissions:@[@"read_stream", @"publish_actions",
-		 @"publish_stream"]
+        [FBSession openActiveSessionWithPublishPermissions:@[@"publish_stream"]
                                            defaultAudience:FBSessionDefaultAudienceEveryone
                                               allowLoginUI:YES
 		 
