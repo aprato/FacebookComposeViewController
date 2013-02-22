@@ -33,9 +33,6 @@
 
 #import <Social/Social.h>
 
-static BOOL waitingForAccess = NO;
-
-
 @interface DEFacebookComposeViewController ()
 
 @property (nonatomic, copy) NSString *text;
@@ -358,7 +355,7 @@ enum {
     return YES;
 }
 
-- (BOOL)addURL:(NSString *)url
+- (BOOL)addURL:(NSURL *)url
 {
     [self.urls removeAllObjects];
     if (url == nil) {
@@ -537,7 +534,7 @@ enum {
 															 NSError *error) {
 											 
 											 if (error) {
-												 NSLog(@"error");
+												 NSLog(@"error opening facebook session: %@", error);
 											 } else {
 												 [FBSession setActiveSession:session];
 												 [self.sendButton setTitle:@"Post" forState:UIControlStateNormal];
@@ -559,7 +556,7 @@ enum {
     
     NSMutableDictionary *d = nil;
     if ( [self.urls count] > 0 && [self.images count] > 0 ) {
-        d = [NSMutableDictionary dictionaryWithObject:[NSString stringWithFormat:@"%@\n%@",self.textView.text,[self.urls lastObject]]
+        d = [NSMutableDictionary dictionaryWithObject:[NSString stringWithFormat:@"%@\n%@",self.textView.text,[[self.urls lastObject] absoluteString]]
                                                forKey:@"message"];
     } else {
         d = [NSMutableDictionary dictionaryWithObject:self.textView.text
@@ -571,7 +568,7 @@ enum {
     
     
     if ([self.urls count] > 0) {
-        d[@"link"] = [self.urls lastObject];
+        d[@"link"] = [[self.urls lastObject] absoluteString];
     }
     
     if ([self.images count] > 0) {
@@ -589,7 +586,7 @@ enum {
     [newConnection addRequest:request completionHandler:^(FBRequestConnection *connection, id result, NSError *error) {
         if (error)
         {
-            NSLog(@"    error");
+            NSLog(@"error posting to facebook: %@", error);
             
             // remove activity
             [[[self.sendButton subviews] lastObject] removeFromSuperview];
@@ -625,8 +622,6 @@ enum {
             else {
                 [self dismissModalViewControllerAnimated:YES];
             }
-			
-            NSLog(@"   ok");
         };
     }];
     

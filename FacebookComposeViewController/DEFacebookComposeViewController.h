@@ -87,7 +87,7 @@ typedef void (^DEFacebookComposeViewControllerCompletionHandler)(DEFacebookCompo
 // Adds a URL to the post. Returns NO if the additional URL will not fit
 // within the character space currently available, or if the sheet has already
 // been presented to the user.
-- (BOOL)addURL:(NSString *)url;
+- (BOOL)addURL:(NSURL *)url;
 
 // Specify a block to be called when the user is finished. This block is not guaranteed
 // to be called on any particular thread.
